@@ -23,11 +23,11 @@ public class PositionServiceImpl implements PositionService {
     private static final Logger LOG = LoggerFactory.getLogger(PositionServiceImpl.class);
 
     private RestTemplate restTemplate;
-    @Autowired
     private PositionRepository repository;
 
-    public PositionServiceImpl(@Autowired RestTemplate restTemplate) {
+    public PositionServiceImpl(@Autowired RestTemplate restTemplate,@Autowired PositionRepository repository) {
         this.restTemplate = restTemplate;
+        this.repository = repository;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class PositionServiceImpl implements PositionService {
                 repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())));
                 savedPositions = savedPositions + recordsByPage;
             }
-            if (response.getStatusCode() == HttpStatus.OK && positionsLeft < recordsByPage){
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null && positionsLeft < recordsByPage){
                 if (positionsLeft < response.getBody().length){
                     repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())).subList(0, positionsLeft - 1));
                 }else{

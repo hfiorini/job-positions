@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -42,9 +41,8 @@ public class PositionServiceTest {
     public void GivenAnApiWhenIWantTOStore100PositionsThenRestTemplateIsCalledTwice(){
         PositionDTO[] dtos = generate50RandomItems();
 
-        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         positionService.importAll("Service URL", 100);
         verify(restTemplate, times(2)).getForEntity(anyString(), any());
@@ -55,9 +53,8 @@ public class PositionServiceTest {
 
         PositionDTO[] dtos = generate50RandomItems();
 
-        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         positionService.importAll("Service URL", 48);
         verify(restTemplate, times(1)).getForEntity(anyString(), any());
@@ -69,9 +66,8 @@ public class PositionServiceTest {
         positionDTO.setId("6c537fb7-cf27-40c7-b04b-08773b9a1197");
         PositionDTO[] dtos = {positionDTO};
 
-        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         positionService.importAll("Service URL", 10);
         verify(restTemplate, times(1)).getForEntity(anyString(), any());
@@ -81,9 +77,8 @@ public class PositionServiceTest {
     public void GivenAnApiWhenIWantTOStore100PositionsThenRepositoryIsCalledTwice(){
         PositionDTO[] dtos = generate50RandomItems();
 
-        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         positionService.importAll("Service URL", 100);
         verify(repository, times(2)).saveAll(anyCollection());
@@ -102,8 +97,7 @@ public class PositionServiceTest {
 
 
         when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString())).thenReturn(positionList);
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         positionService.findPositionBy("Full Time", "The Location", "Some Description");
         verify(repository).findByTypeAndLocationAndName(eq(PositionType.FULL_TIME), eq("The Location"), eq("Some Description"));
@@ -122,8 +116,7 @@ public class PositionServiceTest {
 
 
         when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString())).thenReturn(positionList);
-        positionService = new PositionServiceImpl(restTemplate);
-        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+        positionService = new PositionServiceImpl(restTemplate, repository);
 
         List<PositionView> result = positionService.findPositionBy("Full Time", "The Location", "Some Description");
 
