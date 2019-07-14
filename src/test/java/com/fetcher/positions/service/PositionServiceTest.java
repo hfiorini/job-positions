@@ -36,14 +36,11 @@ public class PositionServiceTest {
     @Before
     public void setUp(){
         MockitoAnnotations.initMocks(this);
-
     }
 
     @Test
-    public void test_import_records(){
-        PositionDTO positionDTO = new PositionDTO();
-        positionDTO.setId("6c537fb7-cf27-40c7-b04b-08773b9a1197");
-        PositionDTO[] dtos = {positionDTO};
+    public void GivenAnApiWhenIWantTOStore100PositionsThenRestTemplateIsCalledTwice(){
+        PositionDTO[] dtos = generate50RandomItems();
 
         when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
         positionService = new PositionServiceImpl(restTemplate);
@@ -54,10 +51,35 @@ public class PositionServiceTest {
     }
 
     @Test
-    public void test_import_records_2(){
+    public void GivenAnApiWhenIWantTOStoreLessThan50PositionsThenRestTemplateIsCalledJustOnce(){
+
+        PositionDTO[] dtos = generate50RandomItems();
+
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate);
+        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+
+        positionService.importAll("Service URL", 48);
+        verify(restTemplate, times(1)).getForEntity(anyString(), any());
+    }
+
+    @Test
+    public void GivenAnApiWhenApiProvidesLessRecordsThanNeededThenJustStoreWhatICan(){
         PositionDTO positionDTO = new PositionDTO();
         positionDTO.setId("6c537fb7-cf27-40c7-b04b-08773b9a1197");
         PositionDTO[] dtos = {positionDTO};
+
+        when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
+        positionService = new PositionServiceImpl(restTemplate);
+        ReflectionTestUtils.setField( positionService, "repository" ,repository);
+
+        positionService.importAll("Service URL", 10);
+        verify(restTemplate, times(1)).getForEntity(anyString(), any());
+    }
+
+    @Test
+    public void GivenAnApiWhenIWantTOStore100PositionsThenRepositoryIsCalledTwice(){
+        PositionDTO[] dtos = generate50RandomItems();
 
         when(restTemplate.getForEntity(anyString(), eq(PositionDTO[].class))).thenReturn(new ResponseEntity<PositionDTO[]>(dtos, HttpStatus.OK));
         positionService = new PositionServiceImpl(restTemplate);
@@ -68,7 +90,7 @@ public class PositionServiceTest {
     }
 
     @Test
-    public void test_import_records_3(){
+    public void GivenASearchWhenIPassTypeDescriptionAndLocationThenRepositoryIsCalledOnceWithThoseSameParams(){
         Position position = new Position();
         position.setLocation("San Francisco");
         position.setCurrentCompany("The company");
@@ -83,12 +105,12 @@ public class PositionServiceTest {
         positionService = new PositionServiceImpl(restTemplate);
         ReflectionTestUtils.setField( positionService, "repository" ,repository);
 
-        List<PositionView> result = positionService.findPositionBy("Full Time", "The Location", "Some Description");
+        positionService.findPositionBy("Full Time", "The Location", "Some Description");
         verify(repository).findByTypeAndLocationAndName(eq(PositionType.FULL_TIME), eq("The Location"), eq("Some Description"));
     }
 
     @Test
-    public void test_import_records_4(){
+    public void GivenASearchWhenIPassTypeDescriptionAndLocationThenResultsAreMappedCorrectly(){
         Position position = new Position();
         position.setLocation("San Francisco");
         position.setCurrentCompany("The company");
@@ -111,5 +133,15 @@ public class PositionServiceTest {
         Assert.assertEquals(result.get(0).getLocation(), "San Francisco");
         Assert.assertEquals(result.get(0).getDescription(), "Developer");
         Assert.assertEquals(result.get(0).getType(), "Full Time");
+    }
+
+    private PositionDTO[] generate50RandomItems(){
+        List<PositionDTO> dtos = new ArrayList<>();
+        for (int i = 0; i < 49; i++) {
+            PositionDTO positionDTO = new PositionDTO();
+            positionDTO.setId(UUID.randomUUID().toString());
+            dtos.add(positionDTO)  ;
+        }
+        return dtos.toArray(new PositionDTO[0]);
     }
 }

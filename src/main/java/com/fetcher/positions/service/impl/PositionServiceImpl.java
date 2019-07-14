@@ -33,18 +33,25 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public void importAll(String url, Integer count) {
         Integer recordsByPage = 50;
-        Integer totalPages = count / recordsByPage;
+        int pageNumber = 1;
+        Integer savedPositions = 0;
 
-        try{
-            for (int i = 1; i <= totalPages ; i++) {
-                ResponseEntity<PositionDTO[]> response = restTemplate.getForEntity(url+"?pages="+i, PositionDTO[].class);
-                if (response.getStatusCode() == HttpStatus.OK){
-                    repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())));
-                }
+        while (savedPositions < count){
+            Integer positionsLeft = count - savedPositions;
+            ResponseEntity<PositionDTO[]> response = restTemplate.getForEntity(url+"?pages="+pageNumber, PositionDTO[].class);
+            if (response.getStatusCode() == HttpStatus.OK && positionsLeft >= recordsByPage){
+                repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())));
+                savedPositions = savedPositions + recordsByPage;
             }
+            if (response.getStatusCode() == HttpStatus.OK && positionsLeft < recordsByPage){
+                if (positionsLeft < response.getBody().length){
+                    repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())).subList(0, positionsLeft - 1));
+                }else{
+                    repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())).subList(0, response.getBody().length));
+                }
 
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
+                savedPositions = count;
+            }
         }
     }
 
