@@ -33,12 +33,13 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public void importAll(String url, Integer count) {
         Integer recordsByPage = 50;
-        int pageNumber = 1;
+        int pageNumber = 0;
         Integer savedPositions = 0;
 
         while (savedPositions < count){
+            pageNumber++;
             Integer positionsLeft = count - savedPositions;
-            ResponseEntity<PositionDTO[]> response = restTemplate.getForEntity(url+"?pages="+pageNumber, PositionDTO[].class);
+            ResponseEntity<PositionDTO[]> response = restTemplate.getForEntity(url+"?page="+pageNumber, PositionDTO[].class);
             if (response.getStatusCode() == HttpStatus.OK && positionsLeft >= recordsByPage){
                 repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())));
                 savedPositions = savedPositions + recordsByPage;
