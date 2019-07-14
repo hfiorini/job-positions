@@ -7,6 +7,9 @@ public class PositionView {
     private String description;
     private String type;
 
+    public PositionView() {
+    }
+
     public PositionView(String id, String company, String location, String description, String type) {
         this.id = id;
         this.company = company;
