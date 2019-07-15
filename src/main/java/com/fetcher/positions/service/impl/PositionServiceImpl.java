@@ -4,15 +4,13 @@ import com.fetcher.positions.entity.Position;
 import com.fetcher.positions.entity.PositionDTO;
 import com.fetcher.positions.entity.PositionType;
 import com.fetcher.positions.entity.PositionView;
+import com.fetcher.positions.processor.ExternalApiProcessor;
 import com.fetcher.positions.repository.PositionRepository;
 import com.fetcher.positions.service.PositionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,36 +19,38 @@ import java.util.stream.Collectors;
 public class PositionServiceImpl implements PositionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PositionServiceImpl.class);
+    public static final int RECORDS_PER_PAGE = 50;
+    public static final int STARTING_PAGE_NUMBER = 0;
 
-    private RestTemplate restTemplate;
+    private ExternalApiProcessor processor;
     private PositionRepository repository;
 
-    public PositionServiceImpl(@Autowired RestTemplate restTemplate,@Autowired PositionRepository repository) {
-        this.restTemplate = restTemplate;
+    public PositionServiceImpl(@Autowired ExternalApiProcessor processor, @Autowired PositionRepository repository) {
+        this.processor = processor;
         this.repository = repository;
     }
 
     @Override
     public void importAll(String url, Integer count) {
-        Integer recordsByPage = 50;
-        int pageNumber = 0;
+        processor.init(url);
+        Integer recordsPerPage = RECORDS_PER_PAGE;
+        int pageNumber = STARTING_PAGE_NUMBER;
         Integer savedPositions = 0;
 
         while (savedPositions < count){
             pageNumber++;
             Integer positionsLeft = count - savedPositions;
-            ResponseEntity<PositionDTO[]> response = restTemplate.getForEntity(url+"?page="+pageNumber, PositionDTO[].class);
-            if (response.getStatusCode() == HttpStatus.OK && positionsLeft >= recordsByPage){
-                repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())));
-                savedPositions = savedPositions + recordsByPage;
+            List<PositionDTO> response = processor.getPositions(pageNumber);
+            if (processor.isResponseOk() && positionsLeft >= recordsPerPage){
+                repository.saveAll(mapToPosition(response));
+                savedPositions = savedPositions + recordsPerPage;
             }
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null && positionsLeft < recordsByPage){
-                if (positionsLeft < response.getBody().length){
-                    repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())).subList(0, positionsLeft - 1));
+            if (processor.isResponseOk() && positionsLeft < recordsPerPage){
+                if (positionsLeft < response.size()){
+                    repository.saveAll(mapToPosition(response).subList(0, positionsLeft - 1));
                 }else{
-                    repository.saveAll(mapToPosition(Objects.requireNonNull(response.getBody())).subList(0, response.getBody().length));
+                    repository.saveAll(mapToPosition(response).subList(0, response.size()));
                 }
-
                 savedPositions = count;
             }
         }
@@ -67,7 +67,7 @@ public class PositionServiceImpl implements PositionService {
 
     }
 
-    private List<Position> mapToPosition(PositionDTO ... positionDTOs){
+    private List<Position> mapToPosition(List<PositionDTO>  positionDTOs){
         List<Position> positionList = new ArrayList<>();
         for (PositionDTO dto: positionDTOs) {
             Position position = new Position();

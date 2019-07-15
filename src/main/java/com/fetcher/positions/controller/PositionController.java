@@ -24,7 +24,7 @@ public class PositionController {
     @PostMapping("/import")
     ResponseEntity importPositions(@RequestBody ImportRequest request){
         positionService.importAll(request.getUrl(), request.getCount());
-        return new ResponseEntity("Success", HttpStatus.CREATED);
+        return new ResponseEntity( HttpStatus.CREATED);
     }
 
     @GetMapping("/findBy")
