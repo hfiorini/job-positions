@@ -1,7 +1,7 @@
 # job-positions
 
 ## Installation
-Set PostgreSQL connection data in application.properties
+Set PostgreSQL connection settings in application.properties
 ```
 spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
 spring.datasource.username=postgres
