@@ -14,5 +14,5 @@ spring.datasource.password=your_password
 ## Spring Security
  Credentials for Basic Authentications are:
  
-      ``ROLE_USER | user: guest_user | password: secret``
-      ``ROLE_ADMIN | user: admin_user | password: secret``
+      ROLE_USER | user: guest_user | password: secret
+      ROLE_ADMIN | user: admin_user | password: secret
