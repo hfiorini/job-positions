@@ -30,6 +30,8 @@ public class PositionServiceTest {
 
     private PositionService positionService;
 
+    private Integer page = null;
+
     @Before
     public void setUp(){
         MockitoAnnotations.initMocks(this);
@@ -99,11 +101,11 @@ public class PositionServiceTest {
         positionList.add(position);
 
 
-        when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString())).thenReturn(positionList);
+        when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString(), isNull())).thenReturn(positionList);
         positionService = new PositionServiceImpl(processor, repository);
 
-        positionService.findPositionBy("Full Time", "The Location", "Some Description");
-        verify(repository).findByTypeAndLocationAndName(eq(PositionType.FULL_TIME), eq("The Location"), eq("Some Description"));
+        positionService.findPositionBy("Full Time", "The Location", "Some Description", page);
+        verify(repository).findByTypeAndLocationAndName(eq(PositionType.FULL_TIME), eq("The Location"), eq("Some Description"), eq(null));
     }
 
     @Test
@@ -118,10 +120,10 @@ public class PositionServiceTest {
         positionList.add(position);
 
 
-        when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString())).thenReturn(positionList);
+        when(repository.findByTypeAndLocationAndName(any(), anyString(), anyString(), isNull())).thenReturn(positionList);
         positionService = new PositionServiceImpl(processor, repository);
 
-        List<PositionView> result = positionService.findPositionBy("Full Time", "The Location", "Some Description");
+        List<PositionView> result = positionService.findPositionBy("Full Time", "The Location", "Some Description", page);
 
         Assert.assertEquals(result.size(), 1);
         Assert.assertEquals(result.get(0).getId(), "6c537fb7-cf27-40c7-b04b-08773b9a1197");

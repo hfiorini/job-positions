@@ -30,8 +30,9 @@ public class PositionController {
     @GetMapping("/findBy")
     ResponseEntity<List<PositionView>> findBy(@RequestParam(value = "type", required = false) String type,
                                               @RequestParam(value = "location", required = false) String location,
-                                              @RequestParam(value = "description", required = false) String description){
-        List<PositionView> result = positionService.findPositionBy(type, location, description);
+                                              @RequestParam(value = "description", required = false) String description,
+                                              @RequestParam(value = "page", required = false) Integer page){
+        List<PositionView> result = positionService.findPositionBy(type, location, description, page);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

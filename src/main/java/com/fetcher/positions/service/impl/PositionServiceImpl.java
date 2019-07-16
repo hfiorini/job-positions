@@ -10,6 +10,8 @@ import com.fetcher.positions.service.PositionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -19,8 +21,9 @@ import java.util.stream.Collectors;
 public class PositionServiceImpl implements PositionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PositionServiceImpl.class);
-    public static final int RECORDS_PER_PAGE = 50;
-    public static final int STARTING_PAGE_NUMBER = 0;
+    private static final int RECORDS_PER_PAGE = 50;
+    private static final int STARTING_PAGE_NUMBER = 0;
+    private static final int PAGE_SIZE = 10;
 
     private ExternalApiProcessor processor;
     private PositionRepository repository;
@@ -57,9 +60,13 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
-    public List<PositionView> findPositionBy(String type, String location, String description) {
+    public List<PositionView> findPositionBy(String type, String location, String description, Integer page) {
         List<Position> results;
-        results = repository.findByTypeAndLocationAndName(PositionType.fromString(type),location, description);
+        PageRequest pageRequest = null;
+        if (page != null){
+            pageRequest = PageRequest.of(page, PAGE_SIZE, Sort.by("name").descending());
+        }
+        results = repository.findByTypeAndLocationAndName(PositionType.fromString(type),location, description, pageRequest);
 
         return  results.stream().map(it ->
                 new PositionView(it.getExternalId().toString(), it.getCurrentCompany(), it.getLocation(), it.getName(), it.getType().getValue()))
